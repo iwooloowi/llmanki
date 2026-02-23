@@ -59,4 +59,7 @@ class LLMClient:
         )
 
         content = resp.choices[0].message.content or "{}"
-        return json.loads(content)
+        try:
+            return json.loads(content)
+        except json.JSONDecodeError:
+            return {}

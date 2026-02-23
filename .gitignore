@@ -1,10 +1,59 @@
+# Python
 __pycache__/
 *.py[cod]
+*.pyo
+*.pyd
+*.so
+*.egg
+*.egg-info/
+*.dist-info/
+build/
+dist/
+site/
+.cache/
+.pytest_cache/
+.pytype/
+.mypy_cache/
+.ruff_cache/
+
+# Virtual environments
+.venv/
+venv/
+ENV/
+
+# Env files
+.env
+.env.*
+
+# Coverage
+.coverage
+coverage.xml
+htmlcov/
+
+# Logs
+*.log
+
+# OS / Editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# SQLite
 *.sqlite
 *.sqlite3
-.env
-.venv/
-.pytest_cache/
-.ruff_cache/
-.build/
-dist/
+
+# Telegram bot assets / temp
+*.session
+
+# UV
+.uv/
+
+# Pre-commit
+.pre-commit-config.local.yaml
+
+# Misc
+*.tmp
+*.bak
+*.swp
+*.swo

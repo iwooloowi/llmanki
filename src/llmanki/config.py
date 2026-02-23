@@ -27,3 +27,16 @@ def load_settings() -> Settings:
         cooldown_seconds=int(os.environ.get("COOLDOWN_SECONDS", "10")),
         max_regenerations=int(os.environ.get("MAX_REGENERATIONS", "3")),
     )
+
+
+def validate_settings(settings: Settings) -> None:
+    missing = []
+    if not settings.telegram_bot_token:
+        missing.append("TELEGRAM_BOT_TOKEN")
+    if not settings.openai_api_key:
+        missing.append("OPENAI_API_KEY")
+    if not settings.openai_model:
+        missing.append("OPENAI_MODEL")
+
+    if missing:
+        raise ValueError(f"Missing required settings: {', '.join(missing)}")

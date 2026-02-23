@@ -1,5 +1,3 @@
-import pytest
-
 from llmanki.domain.card_builder import build_basic_cards, mask_example
 from llmanki.domain.models import Card, Generation
 

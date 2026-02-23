@@ -1,5 +1,8 @@
+from typing import cast
+
 import pytest
 from telegram import InlineKeyboardMarkup
+from telegram import Update
 
 from llmanki.bot.conversations import State
 from llmanki.storage.repositories import PendingRepository, UserRepository
@@ -78,6 +81,20 @@ class DummyGenerator:
 
 
 @pytest.mark.asyncio
+async def test_on_setdeck_prompts_and_moves_to_ask_deck():
+    update = DummyUpdate(user_id=1, text="/setdeck")
+    context = DummyContext({})
+
+    from llmanki.bot.conversations import on_setdeck
+
+    state = await on_setdeck(cast(Update, update), context)
+
+    assert state == State.ASK_DECK
+    assert update.message is not None
+    assert update.message.sent
+
+
+@pytest.mark.asyncio
 async def test_on_deck_sets_deck_and_moves_to_await_word(tmp_path):
     conn = connect(str(tmp_path / "t.sqlite"))
     init_db(conn)
@@ -93,7 +110,7 @@ async def test_on_deck_sets_deck_and_moves_to_await_word(tmp_path):
 
     from llmanki.bot.conversations import on_deck
 
-    state = await on_deck(update, context)
+    state = await on_deck(cast(Update, update), context)
 
     assert state == State.AWAIT_WORD
     assert user_repo.get(1).deck_name == "MyDeck"
@@ -114,13 +131,15 @@ async def test_on_word_generates_preview_and_sets_pending(tmp_path):
             "user_repo": user_repo,
             "pending_repo": pending_repo,
             "example_generator": DummyGenerator(gen),
-            "settings": type("S", (), {"daily_quota": 20, "cooldown_seconds": 10, "max_regenerations": 3})(),
+            "settings": type(
+                "S", (), {"daily_quota": 20, "cooldown_seconds": 10, "max_regenerations": 3}
+            )(),
         }
     )
 
     from llmanki.bot.conversations import on_word
 
-    state = await on_word(update, context)
+    state = await on_word(cast(Update, update), context)
 
     assert state == State.AWAIT_APPROVAL
     pending = pending_repo.get(1)
@@ -128,6 +147,7 @@ async def test_on_word_generates_preview_and_sets_pending(tmp_path):
     assert pending.generation.word == "run"
 
     # preview message includes a keyboard
+    assert update.message is not None
     assert update.message.sent
     _, markup = update.message.sent[-1]
     assert isinstance(markup, InlineKeyboardMarkup)
@@ -155,9 +175,10 @@ async def test_on_approve_adds_cards_and_clears_pending(tmp_path):
 
     from llmanki.bot.conversations import on_approve
 
-    state = await on_approve(update, context)
+    state = await on_approve(cast(Update, update), context)
 
     assert state == State.AWAIT_WORD
     assert pending_repo.get(1) is None
+    assert update.callback_query is not None
     assert update.callback_query.answered == 1
     assert update.callback_query.edited

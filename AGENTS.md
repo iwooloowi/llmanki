@@ -32,9 +32,16 @@ This project uses `uv`.
 - Prefer unit tests with minimal doubles (see `tests/test_bot_flow.py`).
 - Run locally with `uv run pytest`.
 
+## Development Guideline
+- Before writing code, create a test to cover your desired behaviour/feature/bugfix.
+- New tests should fail after creating.
+- Follow DRY priciples.
+- Consider task is done when all related tests pass.
+- Run `uvx pre-commit run --all-files` at the end of the task.
+
 ## Commit & Pull Request Guidelines
 - No commit convention is defined in this repository (no Git history detected).
-- If you add Git later, use short, imperative messages (e.g., “Add AnkiConnect tests”).
+- Use short, imperative messages (e.g., “Add AnkiConnect tests”).
 - For PRs, include: summary, linked issue (if any), and test results.
 
 ## Security & Configuration Tips

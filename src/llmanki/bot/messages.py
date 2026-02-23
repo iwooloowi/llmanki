@@ -50,3 +50,26 @@ def quota_exceeded() -> str:
 
 def cooldown(wait_seconds: int) -> str:
     return f"Please wait {wait_seconds}s before the next request."
+
+
+def anki_unavailable() -> str:
+    return "AnkiConnect is not reachable. Make sure Anki is running with AnkiConnect installed."
+
+
+def generation_failed() -> str:
+    return "Generation failed. Please try again."
+
+
+def status(deck_name: str | None, daily_remaining: int | None, cooldown_remaining: int) -> str:
+    deck_label = deck_name or "(not set)"
+    if daily_remaining is None:
+        daily_line = "Daily remaining: unlimited"
+    else:
+        daily_line = f"Daily remaining: {daily_remaining}"
+    return "\n".join(
+        [
+            f"Deck: {deck_label}",
+            daily_line,
+            f"Cooldown: {cooldown_remaining}s",
+        ]
+    )

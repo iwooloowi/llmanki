@@ -18,6 +18,37 @@ def _json_response(payload, status=200):
 
 
 @pytest.mark.asyncio
+async def test_request_retries_on_connection_error():
+    calls = {"n": 0}
+
+    def handler(request):
+        calls["n"] += 1
+        if calls["n"] == 1:
+            raise httpx.ConnectError("boom", request=request)
+        return _json_response({"result": ["MyDeck"], "error": None})
+
+    transport = httpx.MockTransport(handler)
+    client = AnkiConnectClient("http://localhost:8765", transport=transport, max_retries=1)
+
+    assert await client.deck_exists("MyDeck") is True
+    assert calls["n"] == 2
+
+
+@pytest.mark.asyncio
+async def test_request_wraps_connection_error():
+    def handler(request):
+        raise httpx.ConnectError("boom", request=request)
+
+    transport = httpx.MockTransport(handler)
+    client = AnkiConnectClient("http://localhost:8765", transport=transport, max_retries=0)
+
+    with pytest.raises(AnkiConnectError) as excinfo:
+        await client.deck_exists("MyDeck")
+
+    assert "AnkiConnect" in str(excinfo.value)
+
+
+@pytest.mark.asyncio
 async def test_deck_exists_true():
     def handler(request):
         body = json.loads(request.content)
@@ -29,6 +60,19 @@ async def test_deck_exists_true():
     client._request = _make_request(handler)
 
     assert await client.deck_exists("MyDeck") is True
+
+
+@pytest.mark.asyncio
+async def test_version_request():
+    def handler(request):
+        body = json.loads(request.content)
+        assert body["action"] == "version"
+        return _json_response({"result": 6, "error": None})
+
+    transport = httpx.MockTransport(handler)
+    client = AnkiConnectClient("http://localhost:8765", transport=transport, max_retries=0)
+
+    assert await client.version() == 6
 
 
 @pytest.mark.asyncio
@@ -71,6 +115,7 @@ async def test_request_raises_on_error():
 
 
 # Helper to replace _request with a custom transport
+
 
 def _make_request(handler):
     async def _request(action, params=None):

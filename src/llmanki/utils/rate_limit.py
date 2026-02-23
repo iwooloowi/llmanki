@@ -15,6 +15,12 @@ class RateLimitResult:
     retry_after: int | None
 
 
+@dataclass(frozen=True, slots=True)
+class RateLimitStatus:
+    daily_remaining: int | None
+    cooldown_remaining: int
+
+
 def _day_key(ts: int) -> int:
     return int(ts // 86400)
 
@@ -61,4 +67,35 @@ def check_and_update(
         daily_count=daily_count,
         last_request_ts=now,
         retry_after=None,
+    )
+
+
+def get_rate_limit_status(
+    user: UserState,
+    *,
+    daily_quota: int,
+    cooldown_seconds: int,
+    now_ts: int | None = None,
+) -> RateLimitStatus:
+    now = now_ts or int(time.time())
+
+    if _day_key(now) != _day_key(user.last_request_ts):
+        daily_count = 0
+    else:
+        daily_count = user.daily_count
+
+    if daily_quota > 0:
+        daily_remaining = max(0, daily_quota - daily_count)
+    else:
+        daily_remaining = None
+
+    cooldown_remaining = 0
+    if cooldown_seconds > 0 and user.last_request_ts > 0:
+        elapsed = now - user.last_request_ts
+        if elapsed < cooldown_seconds:
+            cooldown_remaining = cooldown_seconds - elapsed
+
+    return RateLimitStatus(
+        daily_remaining=daily_remaining,
+        cooldown_remaining=cooldown_remaining,
     )

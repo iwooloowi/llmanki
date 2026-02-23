@@ -39,3 +39,17 @@ async def test_generator_sets_placeholder_when_still_missing():
 
     assert result.definition == "(no definition returned)"
     assert result.example == "run"
+
+
+@pytest.mark.asyncio
+async def test_generator_handles_non_dict_response():
+    responses = [
+        "not-a-dict",
+        {"definition": "d", "example": "e"},
+    ]
+    gen = ExampleGenerator(DummyLLM(responses))
+
+    result = await gen.generate("run")
+
+    assert result.definition == "d"
+    assert result.example == "e"
